@@ -1,0 +1,164 @@
+Question 1: Pilgrim Bank just moved to Apiture and my login URL changed—how do I update the institution link so Monarch stops timing out?
+Answer 1: To update your Pilgrim Bank connection in Monarch after the move to Apiture and the login URL change, follow these steps:
+
+1. Go to your [Institution Settings page](https://app.monarchmoney.com/settings/institutions).
+2. Find Pilgrim Bank in your list of institutions.
+3. Click the three dots (...) next to Pilgrim Bank and select "Update login settings."
+4. Follow the prompts to enter your new login credentials and refresh your accounts.
+
+This should update the institution link and stop the timeout errors. If your username changed and Pilgrim Bank is connected via Plaid, you'll need to add it as a new connection and use the [transfer tool](https://help.monarchmoney.com/hc/en-us/articles/36317859703828-Transfer-Balance-and-or-Transaction-History-to-Another-Account) to move your data.
+
+Let me know if you need more help or run into any issues!
+
+Question 2: My Vanguard brokerage cash balance in Monarch is lagging a few weeks behind the real value—what refresh steps can correct the holdings?
+Answer 2: To address the lag in your Vanguard brokerage cash balance in Monarch, here are some refresh steps you can try:
+
+1. **Manual Refresh:**
+   - On Monarch web, go to the Accounts page and click the blue arrows next to your Vanguard account to refresh it.
+   - Alternatively, click "Refresh all" at the top right of the Accounts page to refresh all connected accounts.
+
+2. **Update Login Settings:**
+   - Visit your [Institution Settings](https://app.monarchmoney.com/settings/institutions), find Vanguard, click the three dots next to the name, and select "Update login settings." This can help pull in the latest data.
+
+3. **Edit Balance History (if needed):**
+   - If your balance is still outdated, you can manually update it. On Monarch web, click your Vanguard account, select "Edit" in the top right, then "Edit balance history." Enter the correct balance for the relevant dates and save your changes.
+
+Let me know if you need more details on any of these steps or if your issue persists after trying them!
+
+Question 3: Credit card swipes are syncing, but direct deposits from my checking account never appear; how can I pull in those ACH transactions?
+Answer 3: To help pull in those missing ACH transactions from your checking account, you can try the following steps:
+
+- Force refresh your accounts to update the transaction list.
+- Update your login credentials for the affected bank account to ensure the connection is active and nothing is left behind.
+- If these steps don't resolve the issue, try re-adding your checking account using the "Add Account" flow, then merge the duplicate accounts. This can help sync any transactions that may have been missed.
+
+Let me know if you need more detailed instructions for any of these steps or if the issue persists!
+
+Question 4: After reassigning a few spending categories, the budget view still treats them as income buckets—how do I flip them back to expenses?
+Answer 4: To adjust your categories so they're treated as expenses rather than income in your budget view, you'll need to check their 'Type' assignment in the Categories Settings page. Monarch Money uses three layers for categories: Type (Income, Expenses, Transfers), Group, and Category. The 'Type' determines whether a category is counted as income or expense, and this can't be changed for system categories.
+
+Here's what you can do:
+- Go to your [Categories Settings](https://app.monarchmoney.com/settings/categories) page.
+- Review the categories you've reassigned and make sure they're listed under the 'Expenses' type, not 'Income'.
+- If a category is incorrectly set as 'Income', you'll need to create a new expense category and reassign your transactions to it, since the 'Type' can't be changed for existing categories.
+
+Let me know if you need help with creating new categories or reassigning transactions!
+
+Question 5: When I export a filtered transaction list, the CSV still includes every entry from the account—can I download only the filtered results?
+Answer 5: Yes, you can download only the filtered results! When you're on the Transactions page on the Monarch Money website, just apply your desired filters (like category, account, date, or tag). Then, click the "Download CSV" option under the Summary card. The CSV will include only the transactions that match your filters—not the entire account list. 
+
+If you're seeing all entries instead of just the filtered ones, double-check that your filters are set before downloading. Let me know if you need help with specific filters or steps!
+
+Question 6: Reconnecting Rogers Bank Canada works briefly, then disconnects again—what permanent fix should I try next?
+Answer 6: Connection issues with Rogers Bank Canada can be persistent due to the bank's security settings or limited support for third-party aggregators. Here are some steps you can try to improve reliability:
+
+1. **Update your login credentials:** Go to your Institutions settings page, find Rogers Bank, select the "..." menu, and choose "Update login settings." This refreshes your credentials and may help maintain the connection.
+2. **Try a different data provider:** Monarch supports multiple data providers. On the Institutions page, click "Add account," search for Rogers Bank, and use the '…' icon to select an alternate provider if available. This can sometimes result in a more stable connection.
+3. **Check the connection status dashboard:** Visit the [public connection status page](https://app.monarchmoney.com/institutions/connection-status) to see if there are ongoing issues with Rogers Bank and your chosen data provider.
+4. **Manual tracking:** If connections remain unreliable, you can set up a manual account to track your balances and transactions. Learn more about manual accounts [here](https://help.monarchmoney.com/hc/en-us/articles/360058187072-Manual-accounts).
+
+Let me know which steps you've already tried, or if you need help with any of these options!
+
+Question 7: A friend I referred subscribed yesterday, but the referral reward tile is empty—how can I confirm the credit was tracked?
+Answer 7: When you refer a friend and they subscribe, the referral reward (a $50 gift card for annual plan sign-ups after April 29, 2025) is sent to you about 30 days after your friend connects their accounts and completes payment for the annual subscription. 
+
+If your referral reward tile is still empty, it may be because the 30-day period hasn't passed yet or your friend's subscription is still being processed. You can check the status by visiting the [referrals page](https://app.monarchmoney.com/settings/referrals), where you'll see how many people have used your link or subscribed. 
+
+If your friend signed up for the monthly plan or didn't use your referral link, the reward won't be tracked. Make sure they used your unique link and chose the annual plan. If you have any other questions or need more details, let me know!
+
+Question 8: I found duplicate institution entries after troubleshooting—what’s the safest way to remove the extra account without losing history?
+Answer 8: To safely remove a duplicate account without losing your transaction history, follow these steps:
+
+1. **Transfer History:** Use the [merge history tool](https://help.monarchmoney.com/hc/en-us/articles/14329385694484-Merge-history-to-another-account) to move your transaction and balance history from the duplicate account to the main account you want to keep.
+2. **Download a Backup:** Before making any changes, consider downloading your historical data for extra peace of mind. You can learn how to do this [here](https://help.monarchmoney.com/hc/en-us/articles/15526600975764).
+3. **Delete or Hide the Duplicate:** Once your history is safely transferred, you can delete the duplicate account from the [Institutions Settings page](https://app.monarchmoney.com/settings/institutions) or choose to [hide the account](https://help.monarchmoney.com/hc/en-us/articles/4407859794580) if you want to keep it for reference.
+
+Deleting is permanent, so double-check that your data is transferred and backed up before removing the account. Let me know if you need help with any of these steps!
+
+Question 9: My manual mortgage flipped to a positive balance on the dashboard—how do I correct it so the liability shows properly?
+Answer 9: To fix your manual mortgage so it shows as a liability (subtracting from your net worth), you can use the "Invert account balance" option in your account settings. Here’s how:
+
+- Go to your mortgage account and choose to edit it.
+- Look for the option to "Invert account balance." You’ll see a preview of the corrected amount before saving.
+- Save your changes, and your dashboard should now reflect the mortgage as a liability.
+
+If your historical balances are also incorrect, you can upload a corrected balance history. Check out these guides for step-by-step instructions:
+- [Edit an account](https://help.monarchmoney.com/hc/en-us/articles/360058636951)
+- [Upload balance history](https://help.monarchmoney.com/hc/en-us/articles/14882425704212)
+
+Let me know if you need help with any of these steps!
+
+Question 10: I’m trying to cancel during my trial, but I can’t find a “Manage subscription” option in Billing—where should I go to stop the renewal?
+Answer 10: If you don't see the "Manage subscription" option in your Billing Settings, your subscription might be managed through the Apple App Store or Google Play Store instead of directly through Monarch. 
+
+Here's what you can do:
+
+- **Apple App Store:**
+  1. Open your "Settings" app on your device
+  2. Tap your name
+  3. Tap "Subscriptions"
+  4. Select Monarch from the list and tap "Cancel Subscription"
+
+- **Google Play Store:**
+  1. Open the Google Play Store app
+  2. Tap your profile picture (top right)
+  3. Tap "Payments & subscriptions" > "Subscriptions"
+  4. Select Monarch and cancel
+
+If you are part of a family plan, you may need your family manager to cancel the subscription for you.
+
+If you're billed directly through Monarch and still can't find the option, let me know and I can help you further. Make sure to cancel at least 24 hours before your trial ends to avoid being charged!
+
+Question 11: The welcome promo code showed as applied, yet my first charge posted at the full annual rate—can you verify the discount on my invoice?
+Answer 11: Thank you for reaching out to us. You mentioned that your welcome promo code showed as applied, but your first charge posted at the full annual rate. I'm unable to help you. Please click the "get support from a human" link at the top of the chat window to submit a support ticket and we will be in touch soon.
+
+Question 12: Transfers I make into my Robinhood goal aren’t increasing the goal progress—how should I record those contributions?
+Answer 12: If transfers into your Robinhood goal aren't increasing the goal progress, it's likely because the account doesn't report transactions automatically. To ensure your contributions are reflected in your goal progress, you can manually update the goal's balance.
+
+Here's how you can do it:
+
+**On Web:**
+- Go to your [Goals page](https://app.monarchmoney.com/objectives).
+- Select the goal you want to update.
+- Click **Actions > Edit accounts** and adjust the balance to include your recent contribution.
+
+**On Mobile:**
+- Tap your profile in the top left corner, then tap **Goals**.
+- Select the goal, tap the '…' in the top right, then scroll down to **Accounts assigned** and edit the balance.
+
+This manual update will ensure your goal progress reflects your contributions. If you need more details, check out this [help article](https://help.monarchmoney.com/hc/en-us/articles/15000751305108-Using-Goals#h_01GYDKVYJ3VBWFTJAV5WKGQDR4).
+
+Question 13: I edited a recurring expense and now it’s classified as income in the budget rollup—what’s the right way to fix that category?
+Answer 13: To fix a recurring expense that's now showing as income in your budget rollup, you'll want to check and update the category assigned to that transaction:
+
+1. Go to your [Categories Settings](https://app.monarchmoney.com/settings/categories) page.
+2. Find the transaction in question and make sure it's assigned to an "Expense" category, not an "Income" category.
+3. If needed, you can create a new custom expense category or move the transaction to an existing one.
+4. Once the transaction is correctly categorized as an expense, your budget rollup should reflect it accurately.
+
+If you have multiple transactions affected, you may want to review them all to ensure they're not misclassified. Let me know if you need help with any of these steps!
+
+Question 14: My new Chase Amazon card is visible, but transactions still say “pending” with nothing downloading—should I switch data providers?
+Answer 14: If your Chase Amazon card is visible but transactions are stuck as "pending" and nothing is downloading, there are a couple of things you can try:
+
+- First, pending transactions usually won't download or match until your bank processes and settles them. Once they're no longer pending, they should appear as completed transactions in Monarch.
+- If your account hasn't updated in a while, you can go to your Institutions settings page and update your login settings. This refreshes your connection and can help pull in new transactions.
+- If you're still having trouble, you can try switching to a different data provider. Monarch offers multiple data providers, and sometimes one works better with certain banks. To switch without losing your transaction and balance history, check out this guide: [How to switch data providers](https://help.monarchmoney.com/hc/en-us/articles/14329385694484).
+
+Let me know if you need help with any of these steps or have more questions!
+
+Question 15: The net worth card totals my investments differently than the accounts tab—what causes that mismatch and how do I reconcile it?
+Answer 15: Discrepancies between the net worth card and the accounts tab can happen for a few reasons:
+
+- **Account Type Issues:** Sometimes, banks send incorrect account-type information, which can affect how investments are counted in your net worth. Double-check that each account is set up with the correct type (e.g., investment, liability, etc.).
+- **Currency Mixing:** Monarch displays all amounts with the $ symbol but does not convert currencies. If you have accounts in different currencies (like USD and CAD), their totals are simply added together, which can cause mismatches.
+- **Pending or Unmatched Transactions:** Transactions that haven't been categorized or are still pending may not show up consistently across different tabs.
+- **Historical Data Changes:** Editing account settings or balances can fix current totals but may affect historical data, leading to mismatches in graphs or summaries.
+
+**How to Reconcile:**
+- Review your account types and make sure they're set correctly.
+- Only connect accounts in USD or CAD to avoid misleading totals.
+- Check for any pending or uncategorized transactions.
+- If historical balances are off, consider uploading the correct balance history.
+
+Let me know if you need help with any of these steps or if you have more details about your accounts!

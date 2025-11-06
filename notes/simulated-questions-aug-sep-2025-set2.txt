@@ -1,0 +1,15 @@
+1. Scotiabank keeps failing two-step verification through Plaid even though other accounts sync fine—how do I restore the connection?
+2. My Rogers credit card hasn't reconnected in months despite re-signing repeatedly—what should I do next?
+3. Mohela federal student loan shows a healthy status but an incorrect balance—how can I force the right amount to appear?
+4. Assiniboine Credit Union account hasn't updated for weeks while Monarch says it's updating—what troubleshooting steps can I take?
+5. After deleting a broken connection, Monarch still says the account is already associated—how do I clear the cached link to reconnect?
+6. My new card ending 4884 pauses syncing every other day with "data syncing is paused"—is there a way to keep it connected permanently?
+7. Plaid can't reach the Capital Group site we actually use (retirement.financialtrans.com); can Monarch add that login or suggest an alternative?
+8. Can Monarch bypass Stop Act restrictions for student loan payments, or is there another way to keep those transactions flowing?
+9. What's the best way to track a payroll deduction for a company car so it shows up correctly in my budget?
+10. Does Monarch support split transactions when importing a CSV, or how should I handle a file with lots of splits?
+11. The EZCardInfo connection errors out before sending an MFA code even though web login works—how can I stabilize the sync?
+12. Venmo reconnects sporadically; is there a checklist to follow before I escalate the connection issue?
+13. I renewed my subscription and was supposed to get a $30 credit—where can I verify that it applied?
+14. I was charged right after my trial ended and would like a refund—can you help with that?
+15. I need help linking two Novice savings accounts and can provide screenshots—what info do you need and how do I proceed?

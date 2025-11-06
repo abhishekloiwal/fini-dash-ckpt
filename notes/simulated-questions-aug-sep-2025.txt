@@ -1,0 +1,15 @@
+1. Pilgrim Bank just moved to Apiture and my login URL changed—how do I update the institution link so Monarch stops timing out?
+2. My Vanguard brokerage cash balance in Monarch is lagging a few weeks behind the real value—what refresh steps can correct the holdings?
+3. Credit card swipes are syncing, but direct deposits from my checking account never appear; how can I pull in those ACH transactions?
+4. After reassigning a few spending categories, the budget view still treats them as income buckets—how do I flip them back to expenses?
+5. When I export a filtered transaction list, the CSV still includes every entry from the account—can I download only the filtered results?
+6. Reconnecting Rogers Bank Canada works briefly, then disconnects again—what permanent fix should I try next?
+7. A friend I referred subscribed yesterday, but the referral reward tile is empty—how can I confirm the credit was tracked?
+8. I found duplicate institution entries after troubleshooting—what’s the safest way to remove the extra account without losing history?
+9. My manual mortgage flipped to a positive balance on the dashboard—how do I correct it so the liability shows properly?
+10. I’m trying to cancel during my trial, but I can’t find a “Manage subscription” option in Billing—where should I go to stop the renewal?
+11. The welcome promo code showed as applied, yet my first charge posted at the full annual rate—can you verify the discount on my invoice?
+12. Transfers I make into my Robinhood goal aren’t increasing the goal progress—how should I record those contributions?
+13. I edited a recurring expense and now it’s classified as income in the budget rollup—what’s the right way to fix that category?
+14. My new Chase Amazon card is visible, but transactions still say “pending” with nothing downloading—should I switch data providers?
+15. The net worth card totals my investments differently than the accounts tab—what causes that mismatch and how do I reconcile it?

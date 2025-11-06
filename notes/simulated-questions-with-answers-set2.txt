@@ -1,0 +1,166 @@
+Question 1: Scotiabank keeps failing two-step verification through Plaid even though other accounts sync fine—how do I restore the connection?
+Answer 1: To restore your Scotiabank connection when two-step verification fails through Plaid, here are a few steps you can try:
+
+1. **Try an Alternate Data Provider:**
+   - Go to your Institutions page (Profile Settings > Institutions on the web).
+   - Click "Add an account" and search for Scotiabank.
+   - If an alternate data provider is available, you'll see an icon next to the institution's name. Click it to view and select a backup provider, then proceed to add your accounts.
+
+2. **Update Login Settings:**
+   - Visit your [account settings](https://app.monarchmoney.com/settings/institutions).
+   - Click the three dots next to your Scotiabank account and select "Update login settings" to re-enter your credentials and try reconnecting.
+
+3. **General Troubleshooting:**
+   - Make sure you can log in to Scotiabank's website directly and receive verification codes there.
+   - Try using a different browser or device, or wait 24 hours and attempt the connection again.
+
+If none of these steps work, you can track your Scotiabank account manually for now. Let me know if you need guidance on manual tracking or if you run into any specific errors during these steps!
+
+Question 2: My Rogers credit card hasn't reconnected in months despite re-signing repeatedly—what should I do next?
+Answer 2: It sounds like your Rogers credit card is having a tough time staying connected, even after you've re-signed in multiple times. Some Canadian banks and store brand cards can be tricky to keep synced because of their institutional settings or limited support for third-party connections.
+
+Here are some steps you can try next:
+
+- **Try a different data provider:** Go to your Institutions page on the web, click "Add an account," and search for Rogers. If an alternate data provider is available, you'll see an icon next to the institution's name. Select it and try reconnecting. [Learn more about choosing a different data provider](https://help.monarchmoney.com/hc/en-us/articles/14973178437780).
+- **Force refresh your account:** This can sometimes help trigger a new sync. [How to refresh your accounts](https://help.monarchmoney.com/hc/en-us/articles/360054839131).
+- **Update your login credentials:** If you've changed your password or enabled multi-factor authentication, re-authenticate your credentials. [Guide to updating login settings](https://help.monarchmoney.com/hc/en-us/articles/360048393352-Guide-to-Connecting-Your-Accounts).
+- **Check the connection status:** See if there are any known issues with Rogers on our [public connection status page](https://app.monarchmoney.com/institutions/connection-status).
+- **Manual entry:** If none of the above work, you can manually add your account and transactions. [Manual account setup](https://help.monarchmoney.com/hc/en-us/articles/360058187072-Manual-accounts).
+
+Let me know if you need help with any of these steps or if you see any specific error messages when trying to reconnect!
+
+Question 3: Mohela federal student loan shows a healthy status but an incorrect balance—how can I force the right amount to appear?
+Answer 3: To update your Mohela federal student loan balance to the correct amount, you can manually edit the balance history on Monarch web:
+
+1. Go to the [Accounts page](https://app.monarchmoney.com/accounts).
+2. Click on your Mohela loan account.
+3. Select "Edit" in the top right corner.
+4. Click "Edit balance history"—you'll see balances for the past 90 days.
+5. Enter the correct balance for the relevant dates.
+6. Click "Save changes" to update.
+
+If you haven't already, you can also try refreshing your accounts by clicking "Refresh all" at the top of the [account page](https://app.monarchmoney.com/accounts?chartType=performance&dateRange=1M&timeframe=month), or update your login settings in [account settings](https://app.monarchmoney.com/settings/institutions).
+
+Let me know if you need help with any of these steps or if the issue continues!
+
+Question 4: Assiniboine Credit Union account hasn't updated for weeks while Monarch says it's updating—what troubleshooting steps can I take?
+Answer 4: Here are some troubleshooting steps you can try to resolve the sync issue with your Assiniboine Credit Union account:
+
+1. **Force Refresh Your Account**
+   - On the Accounts page, select your Assiniboine Credit Union account and click the blue arrows to refresh it. You can also use the "Refresh all" option at the top right of the Accounts page.
+
+2. **Update Login Credentials**
+   - Go to your [Institution Settings](https://app.monarchmoney.com/settings/institutions), find Assiniboine Credit Union, click the three dots next to the account name, and select "Update login settings." This will walk you through updating your credentials and refreshing your account.
+
+3. **Re-add the Account**
+   - Try adding the account again using the "Add Account" flow. If this creates a duplicate, you can merge the two accounts to keep your transaction history intact.
+
+4. **Try an Alternate Data Provider**
+   - When adding the account, check if there are alternate data providers available. This can sometimes resolve persistent sync issues. Learn more about this option [here](https://help.monarchmoney.com/hc/en-us/articles/14973178437780-Choosing-Your-Data-Provider).
+
+5. **Manual Import**
+   - If syncing still doesn't work, you can manually import your transactions using a CSV file. Instructions for this process are available [here](https://help.monarchmoney.com/hc/en-us/articles/4409682789908-Import-Transaction-Data-Manually-from-Banks-or-Other-Finance-Apps).
+
+Let me know if you need more details on any of these steps or if you've already tried some of them!
+
+Question 5: After deleting a broken connection, Monarch still says the account is already associated—how do I clear the cached link to reconnect?
+Answer 5: If Monarch still says your account is already associated after you've deleted a broken connection, here are some steps you can try to clear the link and reconnect:
+
+1. **Double-check deletion:** Make sure you've fully deleted the connection and any associated accounts from the [Institutions Settings page](https://app.monarchmoney.com/settings/institutions). You may need to confirm deletion by typing the institution's name.
+2. **Refresh accounts:** After deletion, use the "Refresh All" option in the Accounts tab to update Monarch's records. [Learn more about refreshing accounts.](https://help.monarchmoney.com/hc/en-us/articles/14244011066260-Refresh-all-accounts-at-once)
+3. **Try a different data provider:** If reconnecting still fails, you can attempt to add the institution using a different data provider. [See how to choose a data provider.](https://help.monarchmoney.com/hc/en-us/articles/14973178437780-Choosing-Your-Data-Provider)
+4. **Update login settings:** If the institution is still listed, try updating your login credentials by clicking the three dots next to the account name and selecting "Update login settings."
+
+If you've tried these steps and the account is still recognized as associated, let me know more details about the institution or the error message so I can help further!
+
+Question 6: My new card ending 4884 pauses syncing every other day with "data syncing is paused"—is there a way to keep it connected permanently?
+Answer 6: To help keep your card ending in 4884 connected and minimize sync interruptions, try these steps:
+
+- Go to your Institutions settings page in Monarch.
+- Find your card and select the three dots (...), then choose 'Update login settings.' This will refresh your credentials and may resolve the syncing issue.
+- If syncing continues to pause, try force refreshing your account or re-adding the card using the "Add Account" flow, then merge any duplicate accounts if needed.
+
+These steps should help improve the connection and reduce how often syncing is paused. Let me know if you need more details or run into any issues!
+
+Question 7: Plaid can't reach the Capital Group site we actually use (retirement.financialtrans.com); can Monarch add that login or suggest an alternative?
+Answer 7: You can try searching for your Capital Group retirement account using other data providers like Finicity or MX within Monarch. If you still can't find the institution, you have two options:
+
+- Request a new connection by clicking "Add Account" from the Accounts page and selecting "Request new connection" at the bottom of the pop-up. Monarch shares these requests with data providers, but there's no guarantee it will be added.
+- Alternatively, you can add the account manually to track balances and transactions yourself. Learn more about manual accounts [here](https://help.monarchmoney.com/hc/en-us/articles/360058187072).
+
+Let me know if you need help with any of these steps!
+
+Question 8: Can Monarch bypass Stop Act restrictions for student loan payments, or is there another way to keep those transactions flowing?
+Answer 8: Thank you for reaching out to us about Stop Act restrictions and student loan payments. I realize this situation may be causing concern with your transaction syncing. I'm unable to help you. Please click the "get support from a human" link at the top of the chat window to submit a support ticket and we will be in touch soon.
+
+Question 9: What's the best way to track a payroll deduction for a company car so it shows up correctly in my budget?
+Answer 9: To track a payroll deduction for a company car in your budget, make sure the deduction appears as a transaction in Monarch Money. Here’s how you can keep it organized:
+
+- Categorize the transaction accurately (for example, you might create or use a category like "Company Car" or "Payroll Deductions").
+- Add a note to the transaction with details about the deduction, such as "Company car payroll deduction," for easy reference.
+- If you want to track these deductions separately, consider adding a unique tag to each related transaction. You can learn more about using tags [here](https://help.monarchmoney.com/hc/en-us/search/click?data=BAh7DjoHaWRsKwiUYQO2AgQ6D2FjY291bnRfaWRpA2e6mzoJdHlwZUkiDGFydGljbGUGOgZFVDoIdXJsSSJnaHR0cHM6Ly9oZWxwLm1vbmFyY2htb25leS5jb20vaGMvZW4tdXMvYXJ0aWNsZXMvNDQwOTY5MDEyMDU5Ni1Pcmdhbml6ZS15b3VyLXRyYW5zYWN0aW9ucy13aXRoLXRhZ3MGOwhUOg5zZWFyY2hfaWRJIiliY2NmMDIzNi0wNWFlLTQzYzgtYTg5My05ZDFkNGE1NGY0ZjYGOwhGOglyYW5raQY6C2xvY2FsZUkiCmVuLXVzBjsIVDoKcXVlcnlJIgl0YWdzBjsIVDoScmVzdWx0c19jb3VudGkQ--d11e477efbe3f28d67b2d7d96081aae281b3e840).
+
+This will ensure the deduction is reflected in your budget and you can easily track it over time. If you have more details about how your payroll deduction appears in your account, let me know and I can offer more tailored advice!
+
+Question 10: Does Monarch support split transactions when importing a CSV, or how should I handle a file with lots of splits?
+Answer 10: Monarch doesn't currently support importing split transactions directly from a CSV file. If you have transactions that need to be split, you'll want to import your CSV as usual, then use Monarch's split feature to divide those transactions once they're in your account.
+
+Here's how you can do it:
+- After importing, go to your Transactions page.
+- Select the transaction you want to split and expand its edit page.
+- Click the "Split" icon to break it into multiple parts, each with its own category.
+
+You can read more about splitting transactions in Monarch [here](https://help.monarchmoney.com/hc/en-us/articles/360050178492-Split-transactions).
+
+If you have a file with lots of splits, it may take some manual work after import, but Monarch makes it easy to manage splits once your data is uploaded. Let me know if you need tips on formatting your CSV or handling large imports!
+
+Question 11: The EZCardInfo connection errors out before sending an MFA code even though web login works—how can I stabilize the sync?
+Answer 11: To help stabilize your EZCardInfo sync, try these steps:
+
+- Go to your Institutions settings page and update your login settings for EZCardInfo. This can refresh your connection and prompt a new sync attempt.
+- Force refresh your accounts to see if this resolves the error.
+- If the issue persists, try re-adding the EZCardInfo account using the "Add Account" flow, then merge the old and new accounts if needed.
+
+Some institutions can be difficult to keep synced due to their settings or limited support for third-party connections. If these steps don't resolve the issue, it may be a limitation on the institution's side. Let me know if you need more detailed guidance on any of these steps!
+
+Question 12: Venmo reconnects sporadically; is there a checklist to follow before I escalate the connection issue?
+Answer 12: Here's a checklist you can follow before escalating your Venmo connection issue:
+
+**1. Update Login Settings:**
+- Go to your Institutions settings page in Monarch.
+- Find Venmo, select the "..." menu, and choose "Update login settings" to refresh your credentials.
+
+**2. Force Refresh Accounts:**
+- Try force refreshing your Venmo account to sync the latest data.
+
+**3. Re-add the Account:**
+- If refreshing doesn't help, remove and re-add your Venmo account using the "Add Account" flow, then merge any duplicate accounts.
+
+**4. Check Connection Status:**
+- Visit the [Connection Status Dashboard](https://www.monarchmoney.com/connection-status) to see if there are any ongoing issues with Venmo and your data provider.
+
+**5. General Troubleshooting:**
+- Disable any VPNs you might be using.
+- Make sure your Monarch app is updated to the latest version.
+- Try switching between Wi-Fi and mobile data.
+
+**6. Data Provider Options:**
+- If issues persist, consider switching to a different data provider (Plaid or Finicity) for Venmo. Learn more about this [here](https://help.monarchmoney.com/hc/en-us/articles/14973178437780).
+
+If you've tried all these steps and the issue continues, that's a good point to escalate. Let me know if you need help with any specific step!
+
+Question 13: I renewed my subscription and was supposed to get a $30 credit—where can I verify that it applied?
+Answer 13: Could you clarify if the $30 credit you mentioned is a promotional offer applied to your Monarch Money subscription, or is it related to a credit card or bank account linked to Monarch? This will help me guide you on where to check for the credit or provide more specific instructions.
+
+Question 14: I was charged right after my trial ended and would like a refund—can you help with that?
+Answer 14: Thank you for reaching out to us. I see you were charged after your trial ended and are seeking a refund. I'm unable to help you. Please click the "get support from a human" link at the top of the chat window to submit a support ticket and we will be in touch soon
+
+Question 15: I need help linking two Novice savings accounts and can provide screenshots—what info do you need and how do I proceed?
+Answer 15: To help you link both Novice savings accounts, could you clarify a couple of things for me:
+
+- Are both accounts under the same login credentials at your financial institution, or do they have separate logins?
+- Have you already tried adding both accounts to Monarch, and if so, did only one appear?
+
+If both accounts are under the same login and only one is showing up, try adding the account using the Monarch web browser (instead of mobile) and make sure both accounts are visible and have the correct account subtype set. You can also clear your browser cache and cookies before trying again.
+
+Let me know your answers to the above, and I’ll walk you through the next steps! No need for screenshots just yet—let’s see if we can resolve it together first.
