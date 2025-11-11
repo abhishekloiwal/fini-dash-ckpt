@@ -7,3 +7,15 @@
 
 [build.environment]
   NEXT_TELEMETRY_DISABLED = "1"
+
+[[redirects]]
+  from = "/zincwork-tagging"
+  to = "/zincwork-tagging"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/*"
+  to = "/zincwork-tagging"
+  status = 302
+  force = true
