@@ -9,6 +9,18 @@
   NEXT_TELEMETRY_DISABLED = "1"
 
 [[redirects]]
+  from = "/api/*"
+  to = "/api/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/_next/*"
+  to = "/_next/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
   from = "/zincwork-tagging"
   to = "/zincwork-tagging"
   status = 200
