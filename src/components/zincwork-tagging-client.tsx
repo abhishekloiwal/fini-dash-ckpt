@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import "intro.js/introjs.css";
 import { TagPills, TagReasoning, TagSummary, parseTagPayload } from "@/components/tag-display";
 
 type Row = {
@@ -74,6 +75,49 @@ type DatasetMap = {
   active: DatasetInfo;
 };
 
+const TOUR_STORAGE_KEY = "zincworkTaggingTourSeen";
+
+type TourStep = {
+  element: string;
+  title: string;
+  intro: string;
+};
+
+const TOUR_STEP_DEFS: TourStep[] = [
+  {
+    element: '[data-tour-id="dataset-controls"]',
+    title: "Datasets & pages",
+    intro: "Switch between Done/Active exports and page through tickets.",
+  },
+  {
+    element: '[data-tour-id="ticket-summary"]',
+    title: "Summary",
+    intro: "Each ticket includes a short recap pulled from the CSV.",
+  },
+  {
+    element: '[data-tour-id="ticket-tags"]',
+    title: "Tag pills",
+    intro: "These chips show the taxonomy values for that ticket.",
+  },
+  {
+    element: '[data-tour-id="ticket-reasoning"]',
+    title: "Reasoning",
+    intro: "Quick context on why the ticket was tagged that way.",
+  },
+  {
+    element: '[data-tour-id="fetch-conversation"]',
+    title: "Fetch conversation",
+    intro: "Loads the full Zendesk transcript for deeper review.",
+  },
+];
+
+const getAvailableTourSteps = (): TourStep[] => {
+  if (typeof document === "undefined") {
+    return [];
+  }
+  return TOUR_STEP_DEFS.filter((step) => document.querySelector(step.element));
+};
+
 
 export default function ZincworkTaggingClient({
   datasets,
@@ -95,7 +139,37 @@ export default function ZincworkTaggingClient({
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [tagging, setTagging] = useState<number | null>(null);
   const [taggingError, setTaggingError] = useState<string | null>(null);
+  const [tourReady, setTourReady] = useState(false);
+  const introRef = useRef<typeof import("intro.js").default | null>(null);
   const taggingAllowed = Boolean(enableTagging);
+
+  const startTour = useCallback(() => {
+    if (typeof window === "undefined") return;
+    if (!introRef.current) return;
+    const steps = getAvailableTourSteps();
+    if (!steps.length) return;
+
+    const instance = introRef.current();
+    instance.setOptions({
+      steps,
+      showBullets: false,
+      showProgress: false,
+      exitOnOverlayClick: true,
+      exitOnEsc: true,
+      disableInteraction: true,
+      nextLabel: "Next",
+      prevLabel: "Back",
+      doneLabel: "Done",
+    });
+
+    const markSeen = () => {
+      window.localStorage.setItem(TOUR_STORAGE_KEY, "1");
+    };
+
+    instance.oncomplete(markSeen);
+    instance.onexit(markSeen);
+    instance.start();
+  }, []);
 
   const currentDataset = datasets[datasetKey];
   const currentCsv = currentDataset.csv;
@@ -105,6 +179,30 @@ export default function ZincworkTaggingClient({
   const hasPrev = page > 0;
   const hasNext = pageStart + PAGE_SIZE < totalCount;
   const datasetEntries = Object.entries(datasets) as Array<[keyof DatasetMap, DatasetInfo]>;
+
+  useEffect(() => {
+    let canceled = false;
+    import("intro.js")
+      .then((module) => {
+        if (canceled) return;
+        introRef.current = module.default;
+        setTourReady(true);
+      })
+      .catch(() => {});
+    return () => {
+      canceled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!tourReady || typeof window === "undefined") return undefined;
+    const seen = window.localStorage.getItem(TOUR_STORAGE_KEY);
+    if (seen === "1") return undefined;
+    const timer = window.setTimeout(() => {
+      startTour();
+    }, 600);
+    return () => window.clearTimeout(timer);
+  }, [startTour, tourReady]);
 
   const handleDatasetChange = useCallback(
     (target: keyof DatasetMap) => {
@@ -207,7 +305,7 @@ export default function ZincworkTaggingClient({
     <div className="min-h-screen bg-gradient-to-b from-slate-100 via-white to-white text-slate-900">
       <main className="mx-auto flex max-w-6xl gap-6 px-6 py-12 font-sans lg:px-10">
         <div className="transition-all duration-300 w-full">
-          <header className="space-y-2">
+          <header className="space-y-2" data-tour-id="dataset-controls">
             <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Client View</p>
             <div className="flex flex-wrap items-center gap-3">
               <h1 className="text-3xl font-semibold tracking-tight text-slate-900">Zincwork Tagging Overview</h1>
@@ -267,7 +365,9 @@ export default function ZincworkTaggingClient({
             </div>
           </header>
           <div className="mt-6 space-y-4">
-            {pageRows.map((row) => (
+            {pageRows.map((row, index) => {
+              const isFirstRow = index === 0;
+              return (
               <article
                 key={`${row.month}-${row.ticketId}`}
                 className={`space-y-3 rounded-3xl border p-5 shadow-sm transition ${
@@ -286,6 +386,7 @@ export default function ZincworkTaggingClient({
                       type="button"
                       tooltip="Fetches raw conversation from Zendesk"
                       onClick={() => handleFetchConversation(row.ticketId)}
+                      data-tour-id={isFirstRow ? "fetch-conversation" : undefined}
                       className={`rounded-full border px-4 py-2 font-semibold shadow-sm transition ${
                         selectedTicket === row.ticketId && loadingConversation
                           ? "border-slate-200 bg-slate-200 text-slate-500"
@@ -311,15 +412,16 @@ export default function ZincworkTaggingClient({
                     )}
                   </div>
                 </div>
-                <TagSummary tag={row.tags} />
-                <TagPills tag={row.tags} />
-                <TagReasoning tag={row.tags} />
+                <TagSummary tag={row.tags} dataTourId={isFirstRow ? "ticket-summary" : undefined} />
+                <TagPills tag={row.tags} dataTourId={isFirstRow ? "ticket-tags" : undefined} />
+                <TagReasoning tag={row.tags} dataTourId={isFirstRow ? "ticket-reasoning" : undefined} />
                 {!row.tags && <p className="text-sm text-slate-500">Not tagged yet</p>}
                 {taggingError && tagging === row.ticketId && (
                   <p className="text-xs text-rose-600">{taggingError}</p>
                 )}
               </article>
-            ))}
+            );
+          })}
           </div>
         </div>
       </main>
