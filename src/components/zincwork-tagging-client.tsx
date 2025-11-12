@@ -76,6 +76,9 @@ type DatasetMap = {
 };
 
 const TOUR_STORAGE_KEY = "zincworkTaggingTourSeen";
+const AUTH_STORAGE_KEY = "zincworkBasicAuth";
+const AUTH_USER = "zincwork";
+const AUTH_PASS = "tagmyzincwork";
 
 type TourStep = {
   element: string;
@@ -141,6 +144,11 @@ export default function ZincworkTaggingClient({
   const [taggingError, setTaggingError] = useState<string | null>(null);
   const [tourReady, setTourReady] = useState(false);
   const introRef = useRef<typeof import("intro.js").default | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
+  const [authorized, setAuthorized] = useState(false);
+  const [authUser, setAuthUser] = useState("");
+  const [authPass, setAuthPass] = useState("");
+  const [authError, setAuthError] = useState<string | null>(null);
   const taggingAllowed = Boolean(enableTagging);
 
   const startTour = useCallback(() => {
@@ -195,14 +203,36 @@ export default function ZincworkTaggingClient({
   }, []);
 
   useEffect(() => {
-    if (!tourReady || typeof window === "undefined") return undefined;
+    if (typeof window === "undefined" || authChecked) return;
+    const stored = window.localStorage.getItem(AUTH_STORAGE_KEY);
+    if (stored === `${AUTH_USER}:${AUTH_PASS}`) {
+      setAuthorized(true);
+    }
+    setAuthChecked(true);
+  }, [authChecked]);
+
+  useEffect(() => {
+    if (typeof document === "undefined") return undefined;
+    if (!authChecked || authorized) {
+      document.body.style.overflow = "";
+      return undefined;
+    }
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, [authChecked, authorized]);
+
+  useEffect(() => {
+    if (!tourReady || typeof window === "undefined" || !authorized) return undefined;
     const seen = window.localStorage.getItem(TOUR_STORAGE_KEY);
     if (seen === "1") return undefined;
     const timer = window.setTimeout(() => {
       startTour();
     }, 600);
     return () => window.clearTimeout(timer);
-  }, [startTour, tourReady]);
+  }, [authorized, startTour, tourReady]);
 
   const handleDatasetChange = useCallback(
     (target: keyof DatasetMap) => {
@@ -279,6 +309,22 @@ export default function ZincworkTaggingClient({
     [currentCsv, defaultSubdomain, taggingAllowed],
   );
 
+  const handleAuthSubmit = useCallback(
+    (event: React.FormEvent) => {
+      event.preventDefault();
+      if (authUser.trim() === AUTH_USER && authPass === AUTH_PASS) {
+        if (typeof window !== "undefined") {
+          window.localStorage.setItem(AUTH_STORAGE_KEY, `${AUTH_USER}:${AUTH_PASS}`);
+        }
+        setAuthorized(true);
+        setAuthError(null);
+      } else {
+        setAuthError("Incorrect username or password.");
+      }
+    },
+    [authPass, authUser],
+  );
+
   const closeConversation = useCallback(() => {
     setConversation(null);
     setSelectedTicket(null);
@@ -303,6 +349,45 @@ export default function ZincworkTaggingClient({
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-100 via-white to-white text-slate-900">
+      {authChecked && !authorized && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 px-6">
+          <form
+            onSubmit={handleAuthSubmit}
+            className="w-full max-w-md space-y-4 rounded-3xl border border-slate-200 bg-white p-6 text-slate-900 shadow-2xl"
+          >
+            <h2 className="text-lg font-semibold">Enter Access Password</h2>
+            <p className="text-sm text-slate-500">This dashboard is temporarily protected. Use the shared credentials to continue.</p>
+            <label className="block text-sm font-semibold text-slate-600">
+              Username
+              <input
+                type="text"
+                value={authUser}
+                onChange={(event) => setAuthUser(event.target.value)}
+                className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
+                autoComplete="username"
+                autoFocus
+              />
+            </label>
+            <label className="block text-sm font-semibold text-slate-600">
+              Password
+              <input
+                type="password"
+                value={authPass}
+                onChange={(event) => setAuthPass(event.target.value)}
+                className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
+                autoComplete="current-password"
+              />
+            </label>
+            {authError && <p className="text-sm text-rose-600">{authError}</p>}
+            <button
+              type="submit"
+              className="w-full rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+            >
+              Unlock
+            </button>
+          </form>
+        </div>
+      )}
       <main className="mx-auto flex max-w-6xl gap-6 px-6 py-12 font-sans lg:px-10">
         <div className="transition-all duration-300 w-full">
           <header className="space-y-2" data-tour-id="dataset-controls">
