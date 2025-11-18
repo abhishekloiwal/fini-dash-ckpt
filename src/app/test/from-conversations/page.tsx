@@ -16,8 +16,8 @@ import {
   type FilterState,
 } from "@/data/mockData";
 
-const CONVERSATIONS_ENDPOINT = "https://api-prod.usefini.com/v2/bots/requests/public";
-const ASK_ENDPOINT = "https://api-prod.usefini.com/v2/bots/ask-question";
+const CONVERSATIONS_ENDPOINT = "/api/fini/requests";
+const ASK_ENDPOINT = "/api/fini/ask";
 
 type ApiConversation = {
   id: string;
@@ -202,14 +202,6 @@ export default function GenerateFromConversationsPage() {
 
   const evaluateWithOpenAi = useCallback(
     async (question: string, answer: string): Promise<SimulationEvaluation | null> => {
-      const openAiKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY ?? "";
-      if (!openAiKey) {
-        setEvaluationWarning((current) =>
-          current ?? "OpenAI API key missing. Set NEXT_PUBLIC_OPENAI_API_KEY to enable quality checks.",
-        );
-        return null;
-      }
-
       try {
         const systemPrompt =
           "You are grading a customer support assistant. Reply in JSON only with keys intent_understood, resolution_ready, language_match (values 'pass' or 'fail') and rationale." +
@@ -217,11 +209,10 @@ export default function GenerateFromConversationsPage() {
           "\n- resolution_ready: PASS if the reply gives the user a complete, actionable next step or clear confirmation that nothing else is needed." +
           "\n- language_match: PASS if the assistant responds in the same main language as the user unless the user asked for a different language.";
 
-        const response = await fetch("https://api.openai.com/v1/chat/completions", {
+        const response = await fetch("/api/openai/chat", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${openAiKey}`,
           },
           body: JSON.stringify({
             model: "gpt-5-mini",
@@ -280,12 +271,6 @@ export default function GenerateFromConversationsPage() {
       humanReply: string,
       finiReply: string,
     ): Promise<{ tag: "better" | "on_par" | "worse" | "different"; rationale: string } | null> => {
-      const openAiKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY ?? "";
-      if (!openAiKey) {
-        // don't override any existing warning here; the top call already sets it
-        return null;
-      }
-
       try {
         const systemPrompt =
           "Compare two support replies (Fini vs Human) to the same user request. " +
@@ -296,11 +281,10 @@ export default function GenerateFromConversationsPage() {
           "\n- worse: Use only if Fini is clearly incorrect, unsafe, or omits a critical action (strict)." +
           "\n- different: Both answers are valid but take materially different paths; neither strictly better.";
 
-        const response = await fetch("https://api.openai.com/v1/chat/completions", {
+        const response = await fetch("/api/openai/chat", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${openAiKey}`,
           },
           body: JSON.stringify({
             model: "gpt-5-mini",
@@ -365,35 +349,25 @@ export default function GenerateFromConversationsPage() {
       setSimulationError(null);
       setIsFetching(true);
 
-      const apiKey = process.env.NEXT_PUBLIC_FINI_API_KEY ?? "";
-      if (!apiKey) {
-        setFetchError("Fini API key missing. Set NEXT_PUBLIC_FINI_API_KEY in your environment.");
-        setIsFetching(false);
-        return;
-      }
-
       try {
         const requestedLimit = Math.max(1, Math.min(50, Math.floor(settings.conversationLimit)));
-        const url = new URL(CONVERSATIONS_ENDPOINT);
-        url.searchParams.set("limit", String(requestedLimit));
+        const params = new URLSearchParams();
+        params.set("limit", String(requestedLimit));
         if (settings.startDate) {
           const startEpoch = Date.parse(`${settings.startDate}T00:00:00Z`);
           if (Number.isFinite(startEpoch)) {
-            url.searchParams.set("startEpoch", String(startEpoch));
+            params.set("startEpoch", String(startEpoch));
           }
         }
         if (settings.endDate) {
           const endEpoch = Date.parse(`${settings.endDate}T23:59:59.999Z`);
           if (Number.isFinite(endEpoch)) {
-            url.searchParams.set("endEpoch", String(endEpoch));
+            params.set("endEpoch", String(endEpoch));
           }
         }
 
-        const response = await fetch(url.toString(), {
-          headers: {
-            Authorization: `Bearer ${apiKey}`,
-          },
-        });
+        const query = params.toString();
+        const response = await fetch(query ? `${CONVERSATIONS_ENDPOINT}?${query}` : CONVERSATIONS_ENDPOINT);
 
         if (!response.ok) {
           const message = await response.text();
@@ -420,13 +394,6 @@ export default function GenerateFromConversationsPage() {
   );
 
   const handleRunSimulation = useCallback(async () => {
-      const apiKey = process.env.NEXT_PUBLIC_FINI_API_KEY ?? "";
-      if (!apiKey) {
-        setSimulationError(
-          "Fini API key missing. Set NEXT_PUBLIC_FINI_API_KEY in your environment before running a simulation.",
-        );
-        return;
-      }
       if (!samples.length) {
         setSimulationError("Fetch conversations before running a simulation.");
         return;
@@ -449,7 +416,6 @@ export default function GenerateFromConversationsPage() {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              Authorization: `Bearer ${apiKey}`,
             },
             body: JSON.stringify({
               question: sample.question,

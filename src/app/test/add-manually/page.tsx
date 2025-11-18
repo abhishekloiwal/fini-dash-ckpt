@@ -14,8 +14,7 @@ import {
   XCircle,
 } from "lucide-react";
 
-const API_ENDPOINT = "https://api-prod.usefini.com/v2/bots/ask-question";
-const FINI_API_KEY = process.env.NEXT_PUBLIC_FINI_API_KEY ?? "";
+const API_ENDPOINT = "/api/fini/ask";
 
 const MAX_MANUAL_QUESTIONS = 25;
 
@@ -189,10 +188,6 @@ export default function AddManuallyPage() {
 
   const handleSimulate = useCallback(async () => {
     if (!questions.length) return;
-    if (!FINI_API_KEY) {
-      setSimulationError("Fini API key missing. Set NEXT_PUBLIC_FINI_API_KEY in your environment.");
-      return;
-    }
     setSimulationError(null);
     setSimulationState("running");
     setProgress({ current: 0, total: questions.length });
@@ -205,7 +200,6 @@ export default function AddManuallyPage() {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${FINI_API_KEY}`,
           },
           body: JSON.stringify({
             question,

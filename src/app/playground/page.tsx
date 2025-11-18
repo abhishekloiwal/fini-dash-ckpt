@@ -9,8 +9,7 @@ type MessageDraft = {
   content: string;
 };
 
-const API_ENDPOINT = "https://api-prod.usefini.com/v2/bots/ask-question";
-const FINI_API_KEY = process.env.NEXT_PUBLIC_FINI_API_KEY ?? "";
+const API_ENDPOINT = "/api/fini/ask";
 
 const ROLE_OPTIONS: MessageRole[] = ["system", "user", "assistant", "function"];
 
@@ -217,11 +216,6 @@ export default function PlaygroundPage() {
     setResponseData(null);
     setShowRawResponse(false);
 
-    if (!FINI_API_KEY) {
-      setError("Fini API key missing. Set NEXT_PUBLIC_FINI_API_KEY in your environment.");
-      return;
-    }
-
     const trimmedQuestion = question.trim();
     if (!trimmedQuestion) {
       setError("Question is required.");
@@ -256,10 +250,9 @@ export default function PlaygroundPage() {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${FINI_API_KEY}`,
           },
-        body: JSON.stringify(payload),
-      });
+          body: JSON.stringify(payload),
+        });
 
       if (!response.ok) {
         const text = await response.text();
@@ -303,8 +296,8 @@ export default function PlaygroundPage() {
             Playground
           </h1>
           <p className="text-sm text-slate-600">
-            Configure prompts, send requests to the Fini Answer endpoint, and inspect live responses.
-            API key is hardcoded for now—swap to a secure store before shipping.
+            Configure prompts, send requests to the Fini Answer endpoint through a proxy, and
+            inspect live responses.
           </p>
         </header>
 
@@ -458,7 +451,7 @@ export default function PlaygroundPage() {
                 {isSubmitting ? "Sending..." : "Send request"}
               </button>
               <p className="text-xs text-slate-500">
-                Calls {API_ENDPOINT}. Replace the API key with env-based secrets before production.
+                Calls {API_ENDPOINT}, which proxies the request through the server so credentials stay secret.
               </p>
             </div>
           </form>

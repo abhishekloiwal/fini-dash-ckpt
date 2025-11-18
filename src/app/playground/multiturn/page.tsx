@@ -133,16 +133,10 @@ export default function MultiTurnPlaygroundPage() {
       question: string,
       history: Array<{ role: "user" | "assistant"; content: string }>,
     ) => {
-      const apiKey = process.env.NEXT_PUBLIC_FINI_API_KEY ?? "";
-      if (!apiKey) {
-        throw new Error("Fini API key missing. Set NEXT_PUBLIC_FINI_API_KEY to run simulations.");
-      }
-
-      const response = await fetch("https://api-prod.usefini.com/v2/bots/ask-question", {
+      const response = await fetch("/api/fini/ask", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
           question,
@@ -188,11 +182,6 @@ export default function MultiTurnPlaygroundPage() {
       turnIndex: number;
       scenarioContext: string;
     }): Promise<string> => {
-      const openAiKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY ?? "";
-      if (!openAiKey) {
-        throw new Error("OpenAI API key missing. Add NEXT_PUBLIC_OPENAI_API_KEY to continue.");
-      }
-
       const messages = [
         {
           role: "system",
@@ -217,11 +206,10 @@ export default function MultiTurnPlaygroundPage() {
         },
       ];
 
-      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      const response = await fetch("/api/openai/chat", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${openAiKey}`,
         },
         body: JSON.stringify({
           model: "gpt-5-mini",

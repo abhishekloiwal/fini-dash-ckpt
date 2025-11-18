@@ -2,8 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-const API_ENDPOINT = "https://api-prod.usefini.com/v2/bots/requests/public";
-const FINI_API_KEY = process.env.NEXT_PUBLIC_FINI_API_KEY ?? "";
+const API_ENDPOINT = "/api/fini/requests";
 
 type ConversationRecord = {
   id: string;
@@ -115,13 +114,6 @@ export default function ConversationsPage() {
 
   const handleFetch = async (event?: React.FormEvent<HTMLFormElement>) => {
     event?.preventDefault();
-    if (!FINI_API_KEY) {
-      setStatus({
-        state: "error",
-        message: "Fini API key missing. Set NEXT_PUBLIC_FINI_API_KEY in your environment.",
-      });
-      return;
-    }
     setStatus({ state: "loading" });
     setShowRaw(false);
 
@@ -146,11 +138,7 @@ export default function ConversationsPage() {
 
     try {
       const url = `${API_ENDPOINT}?${params.toString()}`;
-      const response = await fetch(url, {
-        headers: {
-          Authorization: `Bearer ${FINI_API_KEY}`,
-        },
-      });
+      const response = await fetch(url);
 
       if (!response.ok) {
         const body = await response.text();
@@ -214,8 +202,8 @@ export default function ConversationsPage() {
             Recent Conversations
           </h1>
           <p className="text-sm text-slate-600">
-            Fetch chat history from the Fini API. Use filters to narrow by source and escalation
-            state. The API key is hardcoded; move to a secure store before production.
+            Fetch chat history from the Fini API via a server-side proxy. Use filters to narrow by
+            source and escalation state.
           </p>
         </header>
 

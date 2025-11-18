@@ -27,12 +27,11 @@
   force = true
 
 [[redirects]]
-  from = "/*"
+  from = "/"
   to = "/zincwork-tagging"
   status = 302
   force = true
 
-[[headers]]
-  for = "/*"
-  [headers.values]
-    Basic-Auth = "zincwork:tagmyzincwork"
+[[edge_functions]]
+  function = "auth"
+  path = "/*"

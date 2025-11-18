@@ -15,8 +15,7 @@ import {
   XCircle,
 } from "lucide-react";
 
-const API_ENDPOINT = "https://api-prod.usefini.com/v2/bots/ask-question";
-const FINI_API_KEY = process.env.NEXT_PUBLIC_FINI_API_KEY ?? "";
+const API_ENDPOINT = "/api/fini/ask";
 
 const QUESTION_SETS: string[][] = [
   [
@@ -210,10 +209,6 @@ export default function AiExpansionPage() {
 
   const handleSimulate = useCallback(async () => {
     if (!generatedQuestions.length) return;
-    if (!FINI_API_KEY) {
-      setErrorMessage("Fini API key missing. Set NEXT_PUBLIC_FINI_API_KEY in your environment.");
-      return;
-    }
     setSimulationState("running");
     setErrorMessage(null);
     setProgress({ current: 0, total: generatedQuestions.length });
@@ -226,7 +221,6 @@ export default function AiExpansionPage() {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${FINI_API_KEY}`,
           },
           body: JSON.stringify({
             question,
@@ -394,8 +388,8 @@ export default function AiExpansionPage() {
             </p>
             <p className="mt-3 text-xs text-slate-500">
               Simulations call the live{" "}
-              <span className="font-medium text-slate-700">/v2/bots/ask-question</span> endpoint with the
-              configured API key. Each request runs sequentially so you can inspect reasoning traces as they arrive.
+              <span className="font-medium text-slate-700">/api/fini/ask</span> proxy so credentials remain
+              server-side. Each request runs sequentially so you can inspect reasoning traces as they arrive.
             </p>
           </div>
 

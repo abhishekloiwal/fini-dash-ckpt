@@ -1,5 +1,11 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Zincwork tagging workflow
+
+- The dashboard reads ticket tags from the committed CSV exports (see `Support_tickets_*` files). To refresh data for clients, run the local tagging script, review the CSV diff, and push to GitHub; Netlify will redeploy with the new snapshot.
+- Tagging actions are **disabled by default** in production builds. To re-enable the “Run tagging” button while working locally, set `NEXT_PUBLIC_ENABLE_TAGGING=true` in `.env.local` before running `npm run dev`.
+- Even when the UI button is hidden, you can still call the tagging APIs locally if the env flag is enabled.
+
 ## Getting Started
 
 First, run the development server:
