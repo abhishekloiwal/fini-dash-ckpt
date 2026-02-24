@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 type FlattenedTag = {
   category: string;
@@ -26,6 +26,12 @@ const PRODUCT_TAG_COLOR_MAP: Record<string, string> = {
 };
 
 type TagPayload = Record<string, unknown>;
+
+type DeletePayload = {
+  kind: "service" | "product";
+  category: string;
+  value: string;
+};
 
 export const parseTagPayload = (input: unknown): TagPayload | null => {
   if (!input) return null;
@@ -103,9 +109,12 @@ const flattenProductTagValues = (tag: unknown): FlattenedTag[] => {
 type TagDisplayProps = {
   tag: unknown;
   dataTourId?: string;
+  onDelete?: (payload: DeletePayload) => void;
+  disableActions?: boolean;
 };
 
-export function TagPills({ tag, dataTourId }: TagDisplayProps) {
+export function TagPills({ tag, dataTourId, onDelete, disableActions }: TagDisplayProps) {
+  const [confirming, setConfirming] = useState<string | null>(null);
   const items = useMemo(() => flattenServiceTagValues(tag), [tag]);
   if (!items.length) return null;
 
@@ -114,44 +123,127 @@ export function TagPills({ tag, dataTourId }: TagDisplayProps) {
       data-tour-id={dataTourId}
       className="flex flex-wrap gap-2 rounded-2xl border border-slate-200 bg-white/80 p-3 shadow-inner"
     >
-      {items.map((item, index) => (
-        <span
-          // eslint-disable-next-line react/no-array-index-key
-          key={`${item.category}-${item.value}-${index}`}
-          className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold ${
-            SERVICE_TAG_COLOR_MAP[item.category] ?? "bg-slate-100 text-slate-700"
-          }`}
-        >
-          <span className="text-[10px] uppercase tracking-wide text-slate-600">
-            {item.category.replace(/_/g, " ")}
+      {items.map((item, index) => {
+        const key = `${item.category}-${item.value}-${index}`;
+        const showActions = Boolean(onDelete);
+        const isConfirming = confirming === key;
+        return (
+          <span
+            // eslint-disable-next-line react/no-array-index-key
+            key={key}
+            className={`group relative inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold ${
+              SERVICE_TAG_COLOR_MAP[item.category] ?? "bg-slate-100 text-slate-700"
+            }`}
+          >
+            <span className="text-[10px] uppercase tracking-wide text-slate-600">
+              {item.category.replace(/_/g, " ")}
+            </span>
+            <span>{item.value}</span>
+            {showActions && (
+              <>
+                <button
+                  type="button"
+                  disabled={disableActions}
+                  aria-label="Delete tag"
+                  onClick={() => setConfirming(key)}
+                  className={`absolute -top-2 -right-2 inline-flex h-5 w-5 items-center justify-center rounded-full bg-slate-900 text-[10px] font-bold text-white opacity-0 shadow-md transition group-hover:opacity-100 ${disableActions ? "cursor-not-allowed opacity-50" : ""}`}
+                >
+                  ×
+                </button>
+                {isConfirming && (
+                  <div className="absolute inset-0 z-10 flex items-center justify-center rounded-full bg-white/90 px-2 py-1 text-[11px] font-semibold text-slate-700 shadow-md ring-1 ring-slate-200">
+                    <span className="mr-2">Delete?</span>
+                    <button
+                      type="button"
+                      disabled={disableActions}
+                      onClick={() => {
+                        setConfirming(null);
+                        onDelete?.({ kind: "service", category: item.category, value: item.value });
+                      }}
+                      className="rounded-full bg-rose-600 px-2 py-1 text-[10px] font-bold text-white shadow-sm hover:bg-rose-700 disabled:opacity-50"
+                    >
+                      Yes
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setConfirming(null)}
+                      className="ml-1 rounded-full bg-slate-200 px-2 py-1 text-[10px] font-bold text-slate-700 hover:bg-slate-300"
+                    >
+                      No
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
           </span>
-          <span>{item.value}</span>
-        </span>
-      ))}
+        );
+      })}
     </div>
   );
 }
 
-export function ProductTagPills({ tag }: TagDisplayProps) {
+export function ProductTagPills({ tag, onDelete, disableActions }: TagDisplayProps) {
+  const [confirming, setConfirming] = useState<string | null>(null);
   const items = useMemo(() => flattenProductTagValues(tag), [tag]);
   if (!items.length) return null;
 
   return (
     <div className="flex flex-wrap gap-2 rounded-2xl border border-slate-200 bg-white/80 p-3 shadow-inner">
-      {items.map((item, index) => (
-        <span
-          // eslint-disable-next-line react/no-array-index-key
-          key={`${item.category}-${item.value}-${index}`}
-          className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold ${
-            PRODUCT_TAG_COLOR_MAP[item.category] ?? "bg-slate-100 text-slate-700"
-          }`}
-        >
-          <span className="text-[10px] uppercase tracking-wide text-slate-600">
-            {item.category.replace(/_/g, " ")}
+      {items.map((item, index) => {
+        const key = `${item.category}-${item.value}-${index}`;
+        const showActions = Boolean(onDelete);
+        const isConfirming = confirming === key;
+        return (
+          <span
+            // eslint-disable-next-line react/no-array-index-key
+            key={key}
+            className={`group relative inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold ${
+              PRODUCT_TAG_COLOR_MAP[item.category] ?? "bg-slate-100 text-slate-700"
+            }`}
+          >
+            <span className="text-[10px] uppercase tracking-wide text-slate-600">
+              {item.category.replace(/_/g, " ")}
+            </span>
+            <span>{item.value}</span>
+            {showActions && (
+              <>
+                <button
+                  type="button"
+                  disabled={disableActions}
+                  aria-label="Delete tag"
+                  onClick={() => setConfirming(key)}
+                  className={`absolute -top-2 -right-2 inline-flex h-5 w-5 items-center justify-center rounded-full bg-slate-900 text-[10px] font-bold text-white opacity-0 shadow-md transition group-hover:opacity-100 ${disableActions ? "cursor-not-allowed opacity-50" : ""}`}
+                >
+                  ×
+                </button>
+                {isConfirming && (
+                  <div className="absolute inset-0 z-10 flex items-center justify-center rounded-full bg-white/90 px-2 py-1 text-[11px] font-semibold text-slate-700 shadow-md ring-1 ring-slate-200">
+                    <span className="mr-2">Delete?</span>
+                    <button
+                      type="button"
+                      disabled={disableActions}
+                      onClick={() => {
+                        setConfirming(null);
+                        onDelete?.({ kind: "product", category: item.category, value: item.value });
+                      }}
+                      className="rounded-full bg-rose-600 px-2 py-1 text-[10px] font-bold text-white shadow-sm hover:bg-rose-700 disabled:opacity-50"
+                    >
+                      Yes
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setConfirming(null)}
+                      className="ml-1 rounded-full bg-slate-200 px-2 py-1 text-[10px] font-bold text-slate-700 hover:bg-slate-300"
+                    >
+                      No
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
           </span>
-          <span>{item.value}</span>
-        </span>
-      ))}
+        );
+      })}
     </div>
   );
 }

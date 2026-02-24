@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "intro.js/introjs.css";
 import {
@@ -17,6 +18,7 @@ type Row = {
   serviceTags: string | null;
   productTags: string | null;
   companyName: string | null;
+  last_updated?: string | null;
 };
 
 type DatasetInfo = {
@@ -54,9 +56,34 @@ function TooltipButton({ tooltip, className = "", children, ...props }: TooltipB
   );
 }
 
+function isZendeskDeleted(row: Row): boolean {
+  if (!row.serviceTags) return false;
+  try {
+    const parsed = typeof row.serviceTags === "string" ? JSON.parse(row.serviceTags) : row.serviceTags;
+    return parsed?._status === "zendesk_deleted";
+  } catch {
+    return false;
+  }
+}
+
 function formatMonth(value: string) {
   if (!value) return "—";
   return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+function formatLocalDate(value: string | null | undefined): string | null {
+  if (!value) return null;
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toLocaleString(undefined, {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  });
 }
 
 type OutsideClickRef = { current: HTMLElement | null };
@@ -156,6 +183,7 @@ function FilterMultiSelect({ label, options, selected, disabled, onChange }: Fil
   );
 }
 
+
 function SpeakerBubble({ turn }: { turn: TranscriptTurn }) {
   const isUser = turn.speaker === "user";
   const isAgent = turn.speaker === "agent";
@@ -196,6 +224,11 @@ const TOUR_STEP_DEFS: TourStep[] = [
     intro: "Switch between Done/Active exports and page through tickets.",
   },
   {
+    element: '[data-tour-id="config-button"]',
+    title: "Config",
+    intro: "Open the config page to tweak tag prompts and rules.",
+  },
+  {
     element: '[data-tour-id="filters"]',
     title: "Filters",
     intro: "Toggle open to focus on specific companies or taxonomy values.",
@@ -219,6 +252,16 @@ const TOUR_STEP_DEFS: TourStep[] = [
     element: '[data-tour-id="fetch-conversation"]',
     title: "Fetch conversation",
     intro: "Loads the full Zendesk transcript for deeper review.",
+  },
+  {
+    element: '[data-tour-id="batch-tagging"]',
+    title: "Batch tagging",
+    intro: "Run tagging for the first 100 filtered tickets.",
+  },
+  {
+    element: '[data-tour-id="run-tagging"]',
+    title: "Run tagging",
+    intro: "Re-run tagging for this specific ticket.",
   },
 ];
 
@@ -386,6 +429,7 @@ export default function ZincworkTaggingClient({
   enableTagging?: boolean;
 }) {
   const PAGE_SIZE = 100;
+  const [liveDatasets, setLiveDatasets] = useState<DatasetMap>(() => datasets);
   const [datasetKey, setDatasetKey] = useState<keyof DatasetMap>(defaultDataset);
   const [page, setPage] = useState(0);
   const [selectedTicket, setSelectedTicket] = useState<number | null>(null);
@@ -394,11 +438,142 @@ export default function ZincworkTaggingClient({
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [tagging, setTagging] = useState<number | null>(null);
   const [taggingError, setTaggingError] = useState<string | null>(null);
+  const [taggingErrorTicket, setTaggingErrorTicket] = useState<number | null>(null);
+  const [deletingTagKey, setDeletingTagKey] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [deleteErrorTicket, setDeleteErrorTicket] = useState<number | null>(null);
+  const [batching, setBatching] = useState(false);
+  const [batchProgress, setBatchProgress] = useState<{ total: number; done: number }>({ total: 0, done: 0 });
+  const [batchError, setBatchError] = useState<string | null>(null);
+  const [batchFailures, setBatchFailures] = useState<Array<{ ticketId: number; message: string }>>([]);
+  const abortRef = useRef<{ cancel: boolean }>({ cancel: false });
   const [tourReady, setTourReady] = useState(false);
   const [filters, setFilters] = useState<FilterState>(() => getEmptyFilters());
   const [filtersExpanded, setFiltersExpanded] = useState(false);
   const introRef = useRef<typeof import("intro.js").default | null>(null);
   const taggingAllowed = Boolean(enableTagging);
+  const [jobStatus, setJobStatus] = useState<"idle" | "running" | "failed" | "timeout">("idle");
+  const [jobMessage, setJobMessage] = useState<string | null>(null);
+
+  const pollRowUntilUpdate = useCallback(
+    async (
+      ticketId: number,
+      previousLastUpdated: string | null | undefined,
+      timeoutMs = 120000,
+      intervalMs = 3000,
+      jobId?: string,
+    ) => {
+      const start = Date.now();
+      let attempts = 0;
+      // eslint-disable-next-line no-constant-condition
+      while (true) {
+        attempts += 1;
+        if (Date.now() - start > timeoutMs) {
+          setJobStatus("timeout");
+          setJobMessage("Tagging is taking longer than expected. Please try again later.");
+          throw new Error("Tagging is taking longer than expected. Please try again later.");
+        }
+        // check job status first
+        const jobRes = await fetch(
+          `/api/zincwork/tag-status?dataset=${encodeURIComponent(datasetKey)}&ticketId=${encodeURIComponent(String(ticketId))}`,
+        );
+        const jobData = await jobRes.json();
+        if (jobRes.ok && jobData?.job) {
+          const status = jobData.job.status as string;
+          if (status === "failed") {
+            setJobStatus("failed");
+            const err = jobData.job.error_message || "Tagging failed";
+            setJobMessage(err);
+            throw new Error(err);
+          }
+          if (status === "done") {
+            setJobStatus("idle");
+          } else {
+            setJobStatus("running");
+          }
+        }
+        const rowRes = await fetch(
+          `/api/zincwork/tagged-row?dataset=${encodeURIComponent(datasetKey)}&ticketId=${encodeURIComponent(String(ticketId))}`,
+        );
+        const rowData = await rowRes.json();
+        if (rowRes.ok && rowData?.ok && rowData.row) {
+          const lu = rowData.row.lastUpdated;
+          if (lu && lu !== previousLastUpdated) {
+            setJobStatus("idle");
+            setJobMessage(null);
+            return rowData.row;
+          }
+        }
+        await new Promise((resolve) => setTimeout(resolve, attempts === 1 ? intervalMs : intervalMs));
+      }
+    },
+    [datasetKey],
+  );
+
+  const runTaggingForTicket = useCallback(
+    async (ticketId: number, previousLastUpdated: string | null | undefined) => {
+      const prepareRes = await fetch("/api/zendesk/tag-ticket-v3", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "prepare",
+          subdomain: defaultSubdomain,
+          ticketId,
+        }),
+      });
+      const prepareData = await prepareRes.json();
+      if (!prepareRes.ok || prepareData?.ok === false) {
+        throw new Error(prepareData?.error || "Failed to fetch conversation");
+      }
+
+      const bgRes = await fetch("/.netlify/functions/tag-ticket-v3-background", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          dataset: datasetKey,
+          ticketId,
+          transcript: prepareData.transcript,
+          overrides: prepareData.overrides,
+        }),
+      });
+      const rawBg = await bgRes.text();
+      if (!bgRes.ok) {
+        let parsedError = rawBg;
+        try {
+          const json = JSON.parse(rawBg || "{}");
+          parsedError = json?.error || rawBg;
+        } catch {
+          // ignore parse errors
+        }
+        throw new Error(parsedError || "Failed to start tagging");
+      }
+      let bgJobId: string | undefined;
+      if (rawBg) {
+        try {
+          const bgData = JSON.parse(rawBg);
+          if (bgData?.ok === false) {
+            throw new Error(bgData?.error || "Failed to start tagging");
+          }
+          if (typeof bgData?.jobId === "string") {
+            bgJobId = bgData.jobId;
+          }
+        } catch {
+          // empty or non-JSON body is fine for background functions
+        }
+      }
+
+      setJobStatus("running");
+      setJobMessage(null);
+
+      const updatedRow = await pollRowUntilUpdate(ticketId, previousLastUpdated, 120000, 3000, bgJobId);
+      return updatedRow;
+    },
+    [datasetKey, defaultSubdomain, pollRowUntilUpdate],
+  );
+
+  useEffect(() => {
+    setLiveDatasets(datasets);
+  }, [datasets]);
 
   const startTour = useCallback(() => {
     if (typeof window === "undefined") return;
@@ -428,9 +603,9 @@ export default function ZincworkTaggingClient({
     instance.start();
   }, []);
 
-  const currentDataset = datasets[datasetKey];
+  const currentDataset = liveDatasets[datasetKey];
   const currentCsv = currentDataset.csv;
-  const datasetEntries = Object.entries(datasets) as Array<[keyof DatasetMap, DatasetInfo]>;
+  const datasetEntries = Object.entries(liveDatasets) as Array<[keyof DatasetMap, DatasetInfo]>;
 
   const currentFilterOptions = useMemo(() => collectFilterOptions(currentDataset.rows), [currentDataset.rows]);
 
@@ -486,6 +661,18 @@ export default function ZincworkTaggingClient({
     setPage((prev) => (prev > maxPageIndex ? maxPageIndex : prev));
   }, [maxPageIndex]);
 
+  const applyRowUpdate = useCallback(
+    (target: keyof DatasetMap, ticketId: number, updates: Partial<Row>) => {
+      setLiveDatasets((prev) => {
+        const existing = prev[target];
+        if (!existing) return prev;
+        const rows = existing.rows.map((row) => (row.ticketId === ticketId ? { ...row, ...updates } : row));
+        return { ...prev, [target]: { ...existing, rows } };
+      });
+    },
+    [],
+  );
+
   const handleDatasetChange = useCallback(
     (target: keyof DatasetMap) => {
       if (target === datasetKey) return;
@@ -516,6 +703,53 @@ export default function ZincworkTaggingClient({
     setFilters(getEmptyFilters());
     setPage(0);
   }, []);
+
+  const handleDeleteTag = useCallback(
+    async ({
+      ticketId,
+      kind,
+      category,
+      value,
+    }: {
+      ticketId: number;
+      kind: "service" | "product";
+      category: string;
+      value: string;
+    }) => {
+      const opKey = `${ticketId}-${kind}-${category}-${value}`;
+      setDeletingTagKey(opKey);
+      setDeleteError(null);
+      setDeleteErrorTicket(null);
+      try {
+        const res = await fetch("/api/zincwork/delete-tag", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            dataset: datasetKey,
+            ticketId,
+            kind,
+            category,
+            value,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok || data?.ok === false) {
+          throw new Error(data?.error || "Failed to delete tag");
+        }
+        applyRowUpdate(datasetKey, ticketId, {
+          serviceTags: JSON.stringify(data.tags?.service || {}),
+          productTags: JSON.stringify(data.tags?.product || {}),
+          last_updated: new Date().toISOString(),
+        });
+      } catch (error) {
+        setDeleteError(error instanceof Error ? error.message : "Delete tag failed");
+        setDeleteErrorTicket(ticketId);
+      } finally {
+        setDeletingTagKey(null);
+      }
+    },
+    [applyRowUpdate, datasetKey],
+  );
 
   const handleFetchConversation = useCallback(
     async (ticketId: number) => {
@@ -550,33 +784,58 @@ export default function ZincworkTaggingClient({
       }
       setTagging(ticketId);
       setTaggingError(null);
+      setTaggingErrorTicket(null);
       try {
-        if (!currentCsv) {
-          throw new Error("No CSV configured for this dataset");
-        }
-        const response = await fetch("/api/zendesk/tag-ticket", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            csv: currentCsv,
-            subdomain: defaultSubdomain,
-            ticketId,
-          }),
+        const current = liveDatasets[datasetKey]?.rows.find((row) => row.ticketId === ticketId);
+        const updatedRow = await runTaggingForTicket(ticketId, current?.last_updated);
+        applyRowUpdate(datasetKey, ticketId, {
+          serviceTags: updatedRow.serviceTags,
+          productTags: updatedRow.productTags,
+          last_updated: updatedRow.lastUpdated,
         });
-        const data = await response.json();
-        if (!response.ok || data?.ok === false) {
-          throw new Error(data?.error || "Failed to tag ticket");
-        }
-        // Reload the page to fetch updated CSV (simpler than diffing state for now)
-        window.location.reload();
       } catch (error) {
         setTaggingError(error instanceof Error ? error.message : "Unknown tagging error");
+        setTaggingErrorTicket(ticketId);
       } finally {
         setTagging(null);
       }
     },
-    [currentCsv, defaultSubdomain, taggingAllowed],
+    [applyRowUpdate, datasetKey, runTaggingForTicket, taggingAllowed],
   );
+
+  const handleBatchTagging = useCallback(async () => {
+    if (!taggingAllowed) return;
+    abortRef.current.cancel = false;
+    const failures: Array<{ ticketId: number; message: string }> = [];
+    setBatching(true);
+    setBatchError(null);
+    setBatchFailures([]);
+    const total = Math.min(100, filteredRows.length);
+    setBatchProgress({ total, done: 0 });
+    for (let i = 0; i < total; i += 1) {
+      if (abortRef.current.cancel) break;
+      const row = filteredRows[i];
+      try {
+        const updatedRow = await runTaggingForTicket(row.ticketId, row.last_updated);
+        applyRowUpdate(datasetKey, row.ticketId, {
+          serviceTags: updatedRow.serviceTags,
+          productTags: updatedRow.productTags,
+          last_updated: updatedRow.lastUpdated,
+        });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Batch tagging error";
+        failures.push({ ticketId: row.ticketId, message });
+        setBatchError(`Failed ${failures.length} ticket(s); continuing.`);
+      } finally {
+        setBatchProgress((prev) => ({ ...prev, done: i + 1 }));
+      }
+    }
+    if (failures.length) {
+      setBatchFailures(failures);
+      setBatchError(`Batch completed with ${failures.length} failure(s).`);
+    }
+    setBatching(false);
+  }, [applyRowUpdate, datasetKey, filteredRows, runTaggingForTicket, taggingAllowed]);
 
   const closeConversation = useCallback(() => {
     setConversation(null);
@@ -629,6 +888,29 @@ export default function ZincworkTaggingClient({
                   );
                 })}
               </div>
+              <div className="ml-auto flex items-center gap-2">
+                <TooltipButton
+                  type="button"
+                  tooltip="Runs batch tagging for the first 100 tickets sequentially"
+                  className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm hover:border-slate-300"
+                  data-tour-id="batch-tagging"
+                  onClick={handleBatchTagging}
+                  disabled={batching || !taggingAllowed || filteredRows.length === 0}
+                >
+                  {batching ? `Batching ${batchProgress.done}/${batchProgress.total}` : "Run batch tagging"}
+                </TooltipButton>
+                <TooltipButton
+                  type="button"
+                  tooltip="Edit the rules for tagging"
+                  className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm hover:border-slate-300"
+                  data-tour-id="config-button"
+                  onClick={() => {
+                    window.location.href = "/zincwork-tagging/config";
+                  }}
+                >
+                  Config
+                </TooltipButton>
+              </div>
             </div>
               <div className="flex flex-wrap items-center gap-3">
                 <p className="text-sm text-slate-600">
@@ -662,6 +944,41 @@ export default function ZincworkTaggingClient({
                 </button>
               </div>
             </div>
+            {batching || batchError ? (
+              <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-slate-600">
+                <div className="flex items-center gap-2">
+                  <div className="h-2 w-32 overflow-hidden rounded-full bg-slate-200">
+                    <div
+                      className="h-2 bg-emerald-500 transition-all"
+                      style={{
+                        width: batchProgress.total ? `${Math.min(100, (batchProgress.done / batchProgress.total) * 100)}%` : "0%",
+                      }}
+                    />
+                  </div>
+                  <span className="font-semibold">
+                    {batchProgress.done}/{batchProgress.total}
+                  </span>
+                </div>
+                {batchError && <span className="font-semibold text-rose-600">{batchError}</span>}
+                {batchFailures.length > 0 && !batching && (
+                  <span className="font-semibold text-slate-500">
+                    Failed tickets: {batchFailures.length}
+                  </span>
+                )}
+                {batching && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      abortRef.current.cancel = true;
+                      setBatching(false);
+                    }}
+                    className="rounded-full border border-slate-200 bg-white px-3 py-1 font-semibold text-slate-600 shadow-sm hover:border-slate-300"
+                  >
+                    Cancel
+                  </button>
+                )}
+              </div>
+            ) : null}
           </header>
           <section className="mt-6 rounded-3xl border border-slate-200 bg-white/80 p-5 shadow-sm" data-tour-id="filters">
             <div className="flex flex-wrap items-center gap-3">
@@ -710,9 +1027,31 @@ export default function ZincworkTaggingClient({
                             />
                           </div>
                         );
-                      })}
-                    </div>
-                  </div>
+                })}
+              </div>
+              <div className="ml-auto flex items-center gap-2">
+                <TooltipButton
+                  type="button"
+                  tooltip="Runs batch tagging for the first 100 tickets sequentially"
+                  className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm hover:border-slate-300"
+                  onClick={() => {
+                    alert("Run batch tagging for first 100 tickets (one-by-one) — wire backend endpoint here.");
+                  }}
+                >
+                  Run batch tagging
+                </TooltipButton>
+                <TooltipButton
+                  type="button"
+                  tooltip="Edit the rules for tagging"
+                  className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm hover:border-slate-300"
+                  onClick={() => {
+                    window.location.href = "/zincwork-tagging/config";
+                  }}
+                >
+                  Config
+                </TooltipButton>
+              </div>
+            </div>
                 ))}
               </div>
             )}
@@ -725,21 +1064,29 @@ export default function ZincworkTaggingClient({
             ) : (
               pageRows.map((row, index) => {
                 const isFirstRow = index === 0;
-                const hasServiceTags = Boolean(row.serviceTags);
+                const deleted = isZendeskDeleted(row);
+                const hasServiceTags = !deleted && Boolean(row.serviceTags);
                 const companyName = row.companyName?.trim();
                 return (
                   <article
                     key={`${row.month}-${row.ticketId}`}
                     className={`space-y-3 rounded-3xl border p-5 shadow-sm transition ${
-                      selectedTicket === row.ticketId
-                        ? "border-emerald-400 bg-emerald-50/40 shadow-md ring-2 ring-emerald-200"
-                        : "border-slate-200 bg-white"
+                      deleted
+                        ? "border-rose-200 bg-rose-50/40 opacity-60"
+                        : selectedTicket === row.ticketId
+                          ? "border-emerald-400 bg-emerald-50/40 shadow-md ring-2 ring-emerald-200"
+                          : "border-slate-200 bg-white"
                     }`}
                   >
                     <div className="flex flex-wrap items-center gap-3">
-                      <div className="text-lg font-semibold text-slate-900">
+                      <div className={`text-lg font-semibold ${deleted ? "text-slate-400 line-through" : "text-slate-900"}`}>
                         Ticket {row.ticketId.toLocaleString("en-US").replace(/,/g, "")}
                       </div>
+                      {deleted && (
+                        <span className="inline-flex items-center gap-1 rounded-full border border-rose-300 bg-rose-100 px-3 py-1 text-xs font-semibold text-rose-700">
+                          Deleted in Zendesk
+                        </span>
+                      )}
                       <div className="text-sm text-slate-500">{formatMonth(row.month)}</div>
                       {companyName ? (
                         <span className="ml-2 inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-700">
@@ -747,6 +1094,12 @@ export default function ZincworkTaggingClient({
                           <span>{companyName}</span>
                         </span>
                       ) : null}
+                      {!deleted && formatLocalDate(row.last_updated) ? (
+                        <span className="text-xs font-medium text-slate-500">
+                          Updated {formatLocalDate(row.last_updated)}
+                        </span>
+                      ) : null}
+                      {!deleted && (
                       <div className="ml-auto flex gap-2 text-xs">
                         <TooltipButton
                           type="button"
@@ -761,35 +1114,66 @@ export default function ZincworkTaggingClient({
                         >
                           {selectedTicket === row.ticketId && loadingConversation ? "Loading…" : "Fetch conversation"}
                         </TooltipButton>
-                        {taggingAllowed && (
-                          <TooltipButton
-                            type="button"
-                            tooltip="This overwrites the CSV entry for this ticket"
-                            onClick={() => handleRunTagging(row.ticketId)}
-                            disabled={Boolean(tagging) && tagging !== row.ticketId}
-                            className={`rounded-full border px-4 py-2 font-semibold shadow-sm transition ${
-                              tagging === row.ticketId
-                                ? "border-slate-200 bg-slate-200 text-slate-500"
-                                : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
-                            }`}
-                          >
-                            {tagging === row.ticketId ? "Tagging…" : "Run tagging"}
-                          </TooltipButton>
-                        )}
-                      </div>
+                      {taggingAllowed && (
+                        <TooltipButton
+                          type="button"
+                          tooltip="This overwrites the entry for this ticket"
+                          onClick={() => handleRunTagging(row.ticketId)}
+                          disabled={Boolean(tagging) && tagging !== row.ticketId}
+                          data-tour-id={isFirstRow ? "run-tagging" : undefined}
+                          className={`rounded-full border px-4 py-2 font-semibold shadow-sm transition ${
+                            tagging === row.ticketId
+                              ? "border-slate-200 bg-slate-200 text-slate-500"
+                              : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
+                          }`}
+                        >
+                          {tagging === row.ticketId ? "Tagging…" : "Run tagging"}
+                        </TooltipButton>
+                      )}
                     </div>
+                      )}
+                  </div>
+                    {!deleted && (
+                      <>
                     <TagSummary tag={row.serviceTags} dataTourId={isFirstRow ? "ticket-summary" : undefined} />
-                    <TagPills tag={row.serviceTags} dataTourId={isFirstRow ? "ticket-tags" : undefined} />
+                    <TagPills
+                      tag={row.serviceTags}
+                      dataTourId={isFirstRow ? "ticket-tags" : undefined}
+                      onDelete={(payload) =>
+                        handleDeleteTag({ ...payload, ticketId: row.ticketId })
+                      }
+                      disableActions={Boolean(deletingTagKey && deletingTagKey.startsWith(`${row.ticketId}-`))}
+                    />
                     <TagReasoning tag={row.serviceTags} dataTourId={isFirstRow ? "ticket-reasoning" : undefined} />
                     {!hasServiceTags && <p className="text-sm text-slate-500">Not tagged yet</p>}
                     {row.productTags ? (
                       <div className="mt-4 space-y-3" data-tour-id={isFirstRow ? "product-tags" : undefined}>
-                        <ProductTagPills tag={row.productTags} />
+                        <ProductTagPills
+                          tag={row.productTags}
+                          onDelete={(payload) =>
+                            handleDeleteTag({ ...payload, ticketId: row.ticketId })
+                          }
+                          disableActions={Boolean(deletingTagKey && deletingTagKey.startsWith(`${row.ticketId}-`))}
+                        />
                         <ProductReasoning tag={row.productTags} />
                       </div>
                     ) : null}
-                    {taggingError && tagging === row.ticketId && (
+                    {taggingError && taggingErrorTicket === row.ticketId && (
                       <p className="text-xs text-rose-600">{taggingError}</p>
+                    )}
+                    {deleteError && deleteErrorTicket === row.ticketId && (
+                      <p className="text-xs text-rose-600">{deleteError}</p>
+                    )}
+                    {jobStatus === "running" && tagging === row.ticketId && (
+                      <p className="text-xs text-slate-600">Tagging in progress…</p>
+                    )}
+                    {jobStatus === "failed" && taggingErrorTicket === row.ticketId && jobMessage && (
+                      <p className="text-xs text-rose-600">{jobMessage}</p>
+                    )}
+                    {jobStatus === "timeout" && taggingErrorTicket === row.ticketId && jobMessage && (
+                      <p className="text-xs text-rose-600">{jobMessage}</p>
+                    )}
+                      </>
                     )}
                   </article>
                 );
